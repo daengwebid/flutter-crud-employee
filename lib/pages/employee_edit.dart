@@ -3,12 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/employee_provider.dart';
 
-class EmployeeAdd extends StatefulWidget {
+class EmployeeEdit extends StatefulWidget {
+  final String id;
+  EmployeeEdit({this.id});
+
   @override
-  _EmployeeAddState createState() => _EmployeeAddState();
+  _EmployeeEditState createState() => _EmployeeEditState();
 }
 
-class _EmployeeAddState extends State<EmployeeAdd> {
+class _EmployeeEditState extends State<EmployeeEdit> {
   final TextEditingController _name = TextEditingController();
   final TextEditingController _salary = TextEditingController();
   final TextEditingController _age = TextEditingController();
@@ -19,13 +22,25 @@ class _EmployeeAddState extends State<EmployeeAdd> {
   FocusNode salaryNode = FocusNode();
   FocusNode ageNode = FocusNode();
 
+  @override
+  void initState() {
+    Future.delayed(Duration.zero, () {
+      Provider.of<EmployeeProvider>(context, listen: false).findEmployee(widget.id).then((response) {
+        _name.text = response.employeeName;
+        _salary.text = response.employeeSalary;
+        _age.text = response.employeeAge;
+      });
+    });
+    super.initState();
+  }
+
   void submit(BuildContext context) {
     if (!_isLoading) {
       setState(() {
         _isLoading = true;
       });
       Provider.of<EmployeeProvider>(context, listen: false)
-          .storeEmployee(_name.text, _salary.text, _age.text)
+          .updateEmployee(widget.id, _name.text, _salary.text, _age.text)
           .then((res) {
         if (res) {
           Navigator.of(context).pushAndRemoveUntil(
@@ -46,7 +61,7 @@ class _EmployeeAddState extends State<EmployeeAdd> {
     return Scaffold(
       key: snackbarKey,
       appBar: AppBar(
-        title: Text('Add Employee'),
+        title: Text('Edit Employee'),
         actions: <Widget>[
           FlatButton(
             child: _isLoading
